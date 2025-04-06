@@ -1,6 +1,8 @@
 package com.store.bear.exceptions;
 
+import com.store.bear.payload.ApiResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,6 +23,12 @@ public class GlobalExceptionHandler {
             response.put(fieldName, message);
         });
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleResourceNotFoundException(ResourceNotFoundException error) {
+        String message = error.getMessage();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(message,false));
     }
 }
 

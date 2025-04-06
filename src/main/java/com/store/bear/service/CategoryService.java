@@ -1,13 +1,13 @@
 package com.store.bear.service;
 
-import com.store.bear.model.Category;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
+import com.store.bear.exceptions.ResourceNotFoundException;
+import com.store.bear.payload.CategoryDTO;
+import com.store.bear.payload.CategoryResponse;
+import jakarta.persistence.EntityExistsException;
 
 public interface CategoryService {
-    public List<Category> getAllCategories();
-    public void createCategory(Category category);
-    public void deleteCategory(Long categoryId) throws ResponseStatusException;
-    public Category updateCategory(Long categoryId, Category category) throws ResponseStatusException;
+    public CategoryResponse getAllCategories(int pageSize, int pageNumber, String sortBy, String sortOrder);
+    public CategoryDTO createCategory(CategoryDTO categoryDTO) throws EntityExistsException;
+    public CategoryDTO deleteCategory(Long categoryId) throws ResourceNotFoundException;
+    public CategoryDTO updateCategory(Long categoryId, CategoryDTO categoryDTO) throws ResourceNotFoundException;
 }

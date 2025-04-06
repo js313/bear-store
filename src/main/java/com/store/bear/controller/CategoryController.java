@@ -1,7 +1,10 @@
 package com.store.bear.controller;
 
-import com.store.bear.model.Category;
+import com.store.bear.Config.AppConstants;
+import com.store.bear.payload.CategoryDTO;
+import com.store.bear.payload.CategoryResponse;
 import com.store.bear.service.CategoryService;
+import jakarta.persistence.EntityExistsException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,10 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @RestController
+@RequestMapping("/api")
 public class CategoryController {
     private final CategoryService categoryService;
 
@@ -21,31 +22,38 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @GetMapping("/api/public/category")
-    public ResponseEntity<List<Category>> getAllCategories() {
-        return ResponseEntity.ok().body(categoryService.getAllCategories());
+    @GetMapping("/public/category")
+    public ResponseEntity<CategoryResponse> getAllCategories(
+            @RequestParam(value = "pageSize", defaultValue = ""+AppConstants.defaultPageSize) int pageSize,
+            @RequestParam(value = "pageNumber", defaultValue = ""+AppConstants.defaultPageNumber) int pageNumber,
+            @RequestParam(value = "sortBy", defaultValue = AppConstants.defaultSortBy) String sortBy,
+            @RequestParam(value = "sortOrder", defaultValue = AppConstants.defaultSortOrder) String sortOrder) {
+        return ResponseEntity.ok().body(categoryService.getAllCategories(pageSize, pageNumber, sortBy, sortOrder));
     }
 
-    @PostMapping("/api/public/category")
-    public ResponseEntity<String> setCategory(@Valid @RequestBody Category category) {
-        categoryService.createCategory(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Category added successfully");
-    }
-
-    @DeleteMapping("/api/public/category/{categoryId}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long categoryId) {
+    @PostMapping("/public/category")
+    public ResponseEntity<CategoryDTO> setCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         try {
-            categoryService.deleteCategory(categoryId);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Category deleted successfully");
-        } catch(ResponseStatusException error) {
-            return ResponseEntity.status(error.getStatusCode()).body(error.getReason());
+            CategoryDTO savedCategoryDTO = categoryService.createCategory(categoryDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedCategoryDTO);
+        } catch (EntityExistsException error) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 
-    @PutMapping("/api/public/category/{categoryId}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long categoryId, @RequestBody Category category) {
+    @DeleteMapping("/public/category/{categoryId}")
+    public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable Long categoryId) {
         try {
-            Category updatedCategory = categoryService.updateCategory(categoryId, category);
+            return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.deleteCategory(categoryId));
+        } catch(ResponseStatusException error) {
+            return ResponseEntity.status(error.getStatusCode()).body(null);
+        }
+    }
+
+    @PutMapping("/public/category/{categoryId}")
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long categoryId, @RequestBody CategoryDTO categoryDTO) {
+        try {
+            CategoryDTO updatedCategory = categoryService.updateCategory(categoryId, categoryDTO);
             return ResponseEntity.status(HttpStatus.OK).body(updatedCategory);
         } catch(ResponseStatusException error) {
             return ResponseEntity.status(error.getStatusCode()).body(null);
